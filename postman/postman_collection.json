@@ -3,7 +3,40 @@
     "name": "doctor-booking-api",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "variable": [{ "key": "baseUrl", "value": "http://localhost:3000" }],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "adminUser",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "doctorUser",
+      "value": "gregory.house@example.com"
+    },
+    {
+      "key": "patientUser",
+      "value": "pat.ient@example.com"
+    },
+    {
+      "key": "debugUser",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "specialtyId",
+      "value": ""
+    },
+    {
+      "key": "clinicId",
+      "value": ""
+    },
+    {
+      "key": "doctorId",
+      "value": ""
+    }
+  ],
   "item": [
     {
       "name": "Health",
@@ -27,7 +60,367 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identity",
+      "item": [
+        {
+          "name": "Get Me (any role, set debugUser)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{debugUser}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Specialties",
+      "item": [
+        {
+          "name": "Create Specialty (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('specialtyId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Orthopedics {{$timestamp}}\",\"description\":\"Bones and joints\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/specialties",
+              "host": ["{{baseUrl}}"],
+              "path": ["specialties"]
+            }
+          }
+        },
+        {
+          "name": "List Specialties (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/specialties",
+              "host": ["{{baseUrl}}"],
+              "path": ["specialties"]
+            }
+          }
+        },
+        {
+          "name": "Get Specialty (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/specialties/{{specialtyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["specialties", "{{specialtyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Specialty (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\":\"Updated description\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/specialties/{{specialtyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["specialties", "{{specialtyId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clinics",
+      "item": [
+        {
+          "name": "Create Clinic (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('clinicId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Central Clinic\",\"addressLine\":\"12 Rue de Rivoli\",\"city\":\"Paris\",\"phone\":\"+33 1 23 45 67 89\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clinics",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics"]
+            }
+          }
+        },
+        {
+          "name": "List Clinics (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clinics",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics"]
+            }
+          }
+        },
+        {
+          "name": "Get Clinic (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clinics/{{clinicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics", "{{clinicId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Clinic (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"phone\":\"+33 1 98 76 54 32\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clinics/{{clinicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clinics", "{{clinicId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Create Doctor (admin, JSON)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('doctorId', body.id);",
+                  "pm.collectionVariables.set('doctorUser', body.email);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"dr.{{$timestamp}}@example.com\",\"name\":\"Dr Wilson\",\"specialtyId\":\"{{specialtyId}}\",\"clinicId\":\"{{clinicId}}\",\"bio\":\"Oncologist\",\"experienceYears\":12,\"slotDurationMin\":30}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/doctors",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "doctors"]
+            }
+          }
+        },
+        {
+          "name": "Search Doctors (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors?specialtyId={{specialtyId}}&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors"],
+              "query": [
+                {
+                  "key": "specialtyId",
+                  "value": "{{specialtyId}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/{{doctorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "{{doctorId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Doctor (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{adminUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"experienceYears\":15,\"slotDurationMin\":20}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/doctors/{{doctorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "doctors", "{{doctorId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get My Profile (doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{doctorUser}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile (doctor)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{doctorUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bio\":\"Updated by the doctor\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me"]
+            }
           }
         }
       ]

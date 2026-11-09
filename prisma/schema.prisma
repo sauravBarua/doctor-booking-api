@@ -7,3 +7,70 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  email     String   @unique
+  name      String
+  role      Role     @default(PATIENT)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  doctorProfile DoctorProfile?
+
+  @@map("users")
+}
+
+model Specialty {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  doctors DoctorProfile[]
+
+  @@map("specialties")
+}
+
+model Clinic {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String
+  addressLine String   @map("address_line")
+  city        String
+  phone       String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  doctors DoctorProfile[]
+
+  @@map("clinics")
+}
+
+model DoctorProfile {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  specialtyId     String   @map("specialty_id") @db.Uuid
+  clinicId        String   @map("clinic_id") @db.Uuid
+  bio             String   @default("")
+  experienceYears Int      @default(0) @map("experience_years")
+  slotDurationMin Int      @default(30) @map("slot_duration_min")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty Specialty @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  clinic    Clinic    @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+
+  @@index([specialtyId])
+  @@index([clinicId])
+  @@map("doctor_profiles")
+}
