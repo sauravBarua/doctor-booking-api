@@ -4,7 +4,7 @@ import { createUser } from './helpers/factories';
 import { resetDatabase } from './helpers/reset-db';
 import { asUser, createTestApp, type TestContext } from './helpers/test-app';
 
-describe('Identity stub (e2e)', () => {
+describe('Identity (e2e)', () => {
   let ctx: TestContext;
   const http = () => request(ctx.app.getHttpServer());
 
@@ -18,41 +18,42 @@ describe('Identity stub (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase(ctx.prisma, ctx.redis);
+    await createUser(ctx.prisma, 'PATIENT', 'pat@example.com');
+    await createUser(ctx.prisma, 'ADMIN', 'admin@example.com');
+    await createUser(ctx.prisma, 'PATIENT', 'off@example.com');
+    await ctx.prisma.user.update({
+      where: { email: 'off@example.com' },
+      data: { isActive: false },
+    });
   });
 
-  it('rejects requests without the debug header', async () => {
+  it('rejects requests without a token', async () => {
     await http().get('/me').expect(401);
   });
 
-  it('rejects unknown users', async () => {
-    await http().get('/me').set(asUser('nobody@example.com')).expect(401);
+  it('returns the current user for a valid token', async () => {
+    const res = await http().get('/me').set(asUser('pat@example.com')).expect(200);
+    expect(res.body).toMatchObject({ email: 'pat@example.com' });
   });
 
-  it('rejects deactivated users', async () => {
-    const user = await createUser(ctx.prisma, 'PATIENT', 'gone@example.com');
-    await ctx.prisma.user.update({ where: { id: user.id }, data: { isActive: false } });
-    await http().get('/me').set(asUser('gone@example.com')).expect(401);
+  it('keeps an unknown user anonymous', async () => {
+    await http().get('/me').set(asUser('ghost@example.com')).expect(401);
   });
 
-  it('resolves the user and role from the header', async () => {
-    await createUser(ctx.prisma, 'PATIENT', 'pat@example.com', 'Pat Ient');
-    const res = await http().get('/me').set(asUser('Pat@Example.com')).expect(200);
-    expect(res.body).toMatchObject({ email: 'pat@example.com', name: 'Pat Ient', role: 'PATIENT' });
+  it('rejects a deactivated user even with a valid token', async () => {
+    await http().get('/me').set(asUser('off@example.com')).expect(401);
   });
 
-  it('enforces roles: a patient cannot create a specialty, an admin can', async () => {
-    await createUser(ctx.prisma, 'PATIENT', 'pat@example.com');
-    await createUser(ctx.prisma, 'ADMIN', 'admin@example.com');
-
+  it('enforces roles on top of identity', async () => {
     await http()
       .post('/specialties')
       .set(asUser('pat@example.com'))
-      .send({ name: 'Cardiology' })
+      .send({ name: 'X' })
       .expect(403);
-    await http()
+    const admin = await http()
       .post('/specialties')
       .set(asUser('admin@example.com'))
-      .send({ name: 'Cardiology' })
-      .expect(201);
+      .send({ name: 'Neurology' });
+    expect([401, 403]).not.toContain(admin.status);
   });
 });

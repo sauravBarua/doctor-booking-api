@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { hash } from 'bcrypt';
 import { PrismaClient } from '../src/generated/prisma/client';
+
+const DEV_PASSWORD = 'Password123!';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL is not set');
@@ -8,6 +11,10 @@ if (!url) throw new Error('DATABASE_URL is not set');
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
 
 async function main(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to seed dev credentials in production');
+  }
+
   const user = (email: string, name: string, role: 'ADMIN' | 'DOCTOR' | 'PATIENT') =>
     prisma.user.upsert({ where: { email }, update: {}, create: { email, name, role } });
 
@@ -60,6 +67,24 @@ async function main(): Promise<void> {
       create: { email: `race${i}@example.com`, name: `Race Patient ${i}`, role: 'PATIENT' },
     });
   }
+
+  // Dev-only: every seeded account can sign in with a password.
+  const passwordHash = await hash(DEV_PASSWORD, 10);
+  const raceEmails = Array.from({ length: 10 }, (_, index) => `race${index + 1}@example.com`);
+  await prisma.user.updateMany({
+    where: {
+      email: {
+        in: [
+          'admin@example.com',
+          'pat.ient@example.com',
+          'jane.doe@example.com',
+          'gregory.house@example.com',
+          ...raceEmails,
+        ],
+      },
+    },
+    data: { passwordHash, emailVerifiedAt: new Date() },
+  });
 }
 
 main()

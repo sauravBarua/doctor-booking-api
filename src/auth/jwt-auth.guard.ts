@@ -1,21 +1,21 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import type { AuthUser } from '../common/types/auth-user';
 import { PrismaService } from '../prisma/prisma.service';
+import { TokensService } from './tokens.service';
 
-/**
- * TEMPORARY. Stands in for JWT auth until Phase 4. Identity = the X-Debug-User header (an email).
- * Fails closed: when DEV_AUTH_STUB is not "true", every non-public route is a 401.
- */
+interface AuthedRequest {
+  headers: Record<string, string | string[] | undefined>;
+  user?: AuthUser;
+}
+
 @Injectable()
-export class DevAuthGuard implements CanActivate {
+export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
+    private readonly tokens: TokensService,
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,20 +25,19 @@ export class DevAuthGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    if (!this.config.getOrThrow<boolean>('DEV_AUTH_STUB')) {
-      throw new UnauthorizedException();
-    }
+    const request = context.switchToHttp().getRequest<AuthedRequest>();
+    const header = request.headers.authorization;
+    const [scheme, token] = typeof header === 'string' ? header.split(' ') : [];
+    if (scheme?.toLowerCase() !== 'bearer' || !token) throw new UnauthorizedException();
 
-    const request = context.switchToHttp().getRequest<Request & { user?: AuthUser }>();
-    const header = request.headers['x-debug-user'];
-    const email = typeof header === 'string' ? header.trim().toLowerCase() : '';
-    if (!email) throw new UnauthorizedException('Missing X-Debug-User header');
+    const userId = await this.tokens.verifyAccessToken(token);
 
+    // The database is the source of truth for "active" and for the role: changes apply at once.
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { id: userId },
       select: { id: true, email: true, role: true, isActive: true },
     });
-    if (!user || !user.isActive) throw new UnauthorizedException('Unknown or inactive user');
+    if (!user?.isActive) throw new UnauthorizedException();
 
     request.user = { id: user.id, email: user.email, role: user.role };
     return true;

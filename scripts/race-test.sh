@@ -40,6 +40,15 @@ echo "Racers : $N patients (race1..race$N@example.com)"
 echo
 
 # 3. One curl config with N requests, all sent in parallel on separate connections
+# Log every racer in first (the seed gives them all the same dev password)
+declare -a TOKENS
+for i in $(seq 1 "$N"); do
+  TOKENS[$i]=$(curl -fsS -X POST "$BASE_URL/auth/login" -H 'Content-Type: application/json' \
+    -d "{\"email\":\"race$i@example.com\",\"password\":\"Password123!\"}" | node -e '
+    let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => console.log(JSON.parse(s).accessToken));') \
+    || { echo "Login failed for race$i. Did you re-run pnpm prisma:seed?"; exit 1; }
+done
+
 CFG="$TMP/requests.cfg"
 : > "$CFG"
 for i in $(seq 1 "$N"); do
@@ -47,7 +56,7 @@ for i in $(seq 1 "$N"); do
   cat >> "$CFG" <<EOF
 url = "$BASE_URL/appointments"
 request = "POST"
-header = "X-Debug-User: race$i@example.com"
+header = "Authorization: Bearer ${TOKENS[$i]}"
 header = "Idempotency-Key: race-$RUN_ID-$i"
 header = "Content-Type: application/json"
 data = "{\"doctorId\":\"$DOCTOR_ID\",\"start\":\"$SLOT\"}"
@@ -81,7 +90,7 @@ if [ "$WINNERS" -eq 1 ] && [ "$CONFLICTS" -eq $((N - 1)) ] && [ "$STILL_OFFERED"
     W=$(awk '$2 == 201 { print substr($1, 5) }' "$TMP/results.txt")
     ID=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).id)' "$TMP/body$W.json")
     curl -fsS -o /dev/null -X POST "$BASE_URL/appointments/$ID/cancel" \
-      -H "X-Debug-User: race$W@example.com" -H "Content-Type: application/json" -d '{}'
+      -H "Authorization: Bearer ${TOKENS[$W]}" -H "Content-Type: application/json" -d '{}'
     echo "Cleaned up: the winner's appointment is cancelled, so the slot is free again."
   fi
 else

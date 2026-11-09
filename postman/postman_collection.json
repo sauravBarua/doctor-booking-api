@@ -42,7 +42,14 @@
     { "key": "slotsTo", "value": "" },
     { "key": "slotStart", "value": "" },
     { "key": "appointmentId", "value": "" },
-    { "key": "idempotencyKey", "value": "" }
+    { "key": "idempotencyKey", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "doctorToken", "value": "" },
+    { "key": "patientToken", "value": "" },
+    { "key": "adminRefresh", "value": "" },
+    { "key": "patientRefresh", "value": "" },
+    { "key": "registerEmail", "value": "sauravnight+pm1@gmail.com" },
+    { "key": "otpCode", "value": "" }
   ],
   "item": [
     {
@@ -77,6 +84,327 @@
       ]
     },
     {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login Admin (password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 with tokens', () => { pm.response.to.have.status(200); pm.expect(body.accessToken).to.be.a('string'); });",
+                  "pm.collectionVariables.set('adminToken', body.accessToken);",
+                  "pm.collectionVariables.set('adminRefresh', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@example.com\",\"password\":\"Password123!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Doctor (password, seeded Dr House)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 with tokens', () => { pm.response.to.have.status(200); pm.expect(body.accessToken).to.be.a('string'); });",
+                  "pm.collectionVariables.set('doctorToken', body.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"gregory.house@example.com\",\"password\":\"Password123!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Patient (password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 with tokens', () => { pm.response.to.have.status(200); pm.expect(body.accessToken).to.be.a('string'); });",
+                  "pm.collectionVariables.set('patientToken', body.accessToken);",
+                  "pm.collectionVariables.set('patientRefresh', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"pat.ient@example.com\",\"password\":\"Password123!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Patient Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 rotated', () => { pm.response.to.have.status(200); pm.expect(body.refreshToken).to.not.eql(pm.collectionVariables.get('patientRefresh')); });",
+                  "pm.collectionVariables.set('patientToken', body.accessToken);",
+                  "pm.collectionVariables.set('patientRefresh', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refreshToken\":\"{{patientRefresh}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Register (code is emailed to registerEmail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('202', () => pm.response.to.have.status(202));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Postman Patient\",\"email\":\"{{registerEmail}}\",\"password\":\"Password123!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Verify Email (first paste the emailed code into otpCode)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 with tokens', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().accessToken).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{registerEmail}}\",\"code\":\"{{otpCode}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email"]
+            }
+          }
+        },
+        {
+          "name": "Request Login Code (emailed to registerEmail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('202', () => pm.response.to.have.status(202));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{registerEmail}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/otp/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "otp", "request"]
+            }
+          }
+        },
+        {
+          "name": "Verify Login Code (first paste the emailed code into otpCode)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 with tokens', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().accessToken).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{registerEmail}}\",\"code\":\"{{otpCode}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Google Authorization URL (public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 with a Google URL', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().url).to.include('accounts.google.com'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google/url",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google", "url"]
+            }
+          }
+        },
+        {
+          "name": "Logout Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refreshToken\":\"{{patientRefresh}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Identity",
       "item": [
         {
@@ -85,8 +413,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{debugUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               }
             ],
             "url": {
@@ -119,8 +447,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -169,8 +497,8 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -212,8 +540,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -262,8 +590,8 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -307,8 +635,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -367,8 +695,8 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{adminUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "body": {
@@ -393,8 +721,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{doctorUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
               }
             ],
             "url": {
@@ -410,8 +738,8 @@
             "method": "PATCH",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{doctorUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
               }
             ],
             "body": {
@@ -436,6 +764,35 @@
       "name": "Availability",
       "item": [
         {
+          "name": "Select Seeded Doctor (doctor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('doctorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me"]
+            }
+          }
+        },
+        {
           "name": "Set My Availability (doctor)",
           "event": [
             {
@@ -448,7 +805,7 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
             "body": {
               "mode": "raw",
               "raw": "{\"rules\":[{\"dayOfWeek\":1,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":2,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":3,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":4,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":5,\"start\":\"09:00\",\"end\":\"17:00\"}]}",
@@ -465,7 +822,7 @@
           "name": "Get My Availability (doctor)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/availability",
               "host": ["{{baseUrl}}"],
@@ -499,7 +856,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
             "body": {
               "mode": "raw",
               "raw": "{\"date\":\"{{timeOffDate}}\",\"start\":\"10:00\",\"end\":\"12:00\",\"reason\":\"Conference\"}",
@@ -516,7 +873,7 @@
           "name": "List My Time Off (doctor)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/time-off",
               "host": ["{{baseUrl}}"],
@@ -528,7 +885,7 @@
           "name": "Delete Time Off (doctor)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/time-off/{{timeOffId}}",
               "host": ["{{baseUrl}}"],
@@ -655,8 +1012,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{patientUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               },
               {
                 "key": "Idempotency-Key",
@@ -696,8 +1053,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{patientUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               },
               {
                 "key": "Idempotency-Key",
@@ -726,8 +1083,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{patientUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               }
             ],
             "url": {
@@ -743,8 +1100,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{doctorUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
               }
             ],
             "url": {
@@ -760,8 +1117,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{patientUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               }
             ],
             "url": {
@@ -788,8 +1145,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-Debug-User",
-                "value": "{{patientUser}}"
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
               }
             ],
             "body": {

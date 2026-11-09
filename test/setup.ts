@@ -13,3 +13,9 @@ if (!databaseUrl.endsWith('_test') || !redisUrl.endsWith('/1')) {
       'Check .env.test.',
   );
 }
+
+if (process.env.MAIL_DRIVER !== 'memory') {
+  throw new Error(
+    'Refusing to run tests: MAIL_DRIVER must be "memory" (tests must never send real email).',
+  );
+}
