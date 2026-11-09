@@ -29,7 +29,7 @@ async function main(): Promise<void> {
       data: { name: 'Central Clinic', addressLine: '12 Rue de Rivoli', city: 'Paris' },
     }));
 
-  await prisma.doctorProfile.upsert({
+  const profile = await prisma.doctorProfile.upsert({
     where: { userId: house.id },
     update: {},
     create: {
@@ -40,6 +40,18 @@ async function main(): Promise<void> {
       experienceYears: 20,
     },
   });
+
+  const existingRules = await prisma.availabilityRule.count({ where: { doctorId: profile.id } });
+  if (existingRules === 0) {
+    await prisma.availabilityRule.createMany({
+      data: [1, 2, 3, 4, 5].map((dayOfWeek) => ({
+        doctorId: profile.id,
+        dayOfWeek,
+        startMinute: 540, // 09:00
+        endMinute: 1020, // 17:00
+      })),
+    });
+  }
 }
 
 main()

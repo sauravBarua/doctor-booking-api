@@ -35,7 +35,12 @@
     {
       "key": "doctorId",
       "value": ""
-    }
+    },
+    { "key": "timeOffId", "value": "" },
+    { "key": "timeOffDate", "value": "" },
+    { "key": "slotsFrom", "value": "" },
+    { "key": "slotsTo", "value": "" },
+    { "key": "slotStart", "value": "" }
   ],
   "item": [
     {
@@ -420,6 +425,152 @@
               "raw": "{{baseUrl}}/doctors/me",
               "host": ["{{baseUrl}}"],
               "path": ["doctors", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "Set My Availability (doctor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"rules\":[{\"dayOfWeek\":1,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":2,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":3,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":4,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":5,\"start\":\"09:00\",\"end\":\"17:00\"}]}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me", "availability"]
+            }
+          }
+        },
+        {
+          "name": "Get My Availability (doctor)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me/availability",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me", "availability"]
+            }
+          }
+        },
+        {
+          "name": "Add Time Off (doctor)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 3 * 86400000);",
+                  "pm.collectionVariables.set('timeOffDate', d.toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('timeOffId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"date\":\"{{timeOffDate}}\",\"start\":\"10:00\",\"end\":\"12:00\",\"reason\":\"Conference\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me/time-off",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me", "time-off"]
+            }
+          }
+        },
+        {
+          "name": "List My Time Off (doctor)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me/time-off",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me", "time-off"]
+            }
+          }
+        },
+        {
+          "name": "Delete Time Off (doctor)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "X-Debug-User", "value": "{{doctorUser}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/me/time-off/{{timeOffId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "me", "time-off", "{{timeOffId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Slots (public)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = 86400000;",
+                  "pm.collectionVariables.set('slotsFrom', new Date(Date.now() + day).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('slotsTo', new Date(Date.now() + 8 * day).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 with slots', () => { pm.response.to.have.status(200); pm.expect(body.slots.length).to.be.above(0); });",
+                  "if (body.slots.length) pm.collectionVariables.set('slotStart', body.slots[0].start);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/{{doctorId}}/slots?from={{slotsFrom}}&to={{slotsTo}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "{{doctorId}}", "slots"],
+              "query": [
+                { "key": "from", "value": "{{slotsFrom}}" },
+                { "key": "to", "value": "{{slotsTo}}" }
+              ]
             }
           }
         }

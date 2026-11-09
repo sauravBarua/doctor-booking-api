@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { SpecialtiesModule } from './specialties/specialties.module';
 import { UsersModule } from './users/users.module';
+import { AvailabilityModule } from './availability/availability.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     SpecialtiesModule,
     ClinicsModule,
     DoctorsModule,
+    AvailabilityModule,
     HealthModule,
   ],
   providers: [

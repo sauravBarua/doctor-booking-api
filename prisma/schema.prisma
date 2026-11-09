@@ -70,7 +70,39 @@ model DoctorProfile {
   specialty Specialty @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
   clinic    Clinic    @relation(fields: [clinicId], references: [id], onDelete: Restrict)
 
+  availabilityRules AvailabilityRule[]
+  timeOffs          TimeOff[]
+
   @@index([specialtyId])
   @@index([clinicId])
   @@map("doctor_profiles")
+}
+
+model AvailabilityRule {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  doctorId    String   @map("doctor_id") @db.Uuid
+  dayOfWeek   Int      @map("day_of_week")
+  startMinute Int      @map("start_minute")
+  endMinute   Int      @map("end_minute")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  doctor DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, dayOfWeek])
+  @@map("availability_rules")
+}
+
+model TimeOff {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  doctorId    String   @map("doctor_id") @db.Uuid
+  date        DateTime @db.Date
+  startMinute Int?     @map("start_minute")
+  endMinute   Int?     @map("end_minute")
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  doctor DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, date])
+  @@map("time_off")
 }
