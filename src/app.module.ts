@@ -12,6 +12,7 @@ import { RedisModule } from './redis/redis.module';
 import { SpecialtiesModule } from './specialties/specialties.module';
 import { UsersModule } from './users/users.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AvailabilityModule } from './availability/availability.module';
     ClinicsModule,
     DoctorsModule,
     AvailabilityModule,
+    AppointmentsModule,
     HealthModule,
   ],
   providers: [

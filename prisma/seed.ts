@@ -52,6 +52,14 @@ async function main(): Promise<void> {
       })),
     });
   }
+
+  for (let i = 1; i <= 10; i++) {
+    await prisma.user.upsert({
+      where: { email: `race${i}@example.com` },
+      update: {},
+      create: { email: `race${i}@example.com`, name: `Race Patient ${i}`, role: 'PATIENT' },
+    });
+  }
 }
 
 main()

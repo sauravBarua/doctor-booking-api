@@ -40,7 +40,9 @@
     { "key": "timeOffDate", "value": "" },
     { "key": "slotsFrom", "value": "" },
     { "key": "slotsTo", "value": "" },
-    { "key": "slotStart", "value": "" }
+    { "key": "slotStart", "value": "" },
+    { "key": "appointmentId", "value": "" },
+    { "key": "idempotencyKey", "value": "" }
   ],
   "item": [
     {
@@ -571,6 +573,238 @@
                 { "key": "from", "value": "{{slotsFrom}}" },
                 { "key": "to", "value": "{{slotsTo}}" }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Find a Bookable Slot (public)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const day = 86400000;",
+                  "pm.collectionVariables.set('slotsFrom', new Date(Date.now() + 3 * day).toISOString().slice(0, 10));",
+                  "pm.collectionVariables.set('slotsTo', new Date(Date.now() + 10 * day).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('200 with slots', () => { pm.response.to.have.status(200); pm.expect(body.slots.length).to.be.above(0); });",
+                  "if (body.slots.length) pm.collectionVariables.set('slotStart', body.slots[0].start);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/{{doctorId}}/slots?from={{slotsFrom}}&to={{slotsTo}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", "{{doctorId}}", "slots"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "{{slotsFrom}}"
+                },
+                {
+                  "key": "to",
+                  "value": "{{slotsTo}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Book Appointment (patient)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idempotencyKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.test('201 confirmed', () => { pm.response.to.have.status(201); pm.expect(body.status).to.eql('CONFIRMED'); });",
+                  "pm.collectionVariables.set('appointmentId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{patientUser}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"doctorId\":\"{{doctorId}}\",\"start\":\"{{slotStart}}\",\"reason\":\"Annual checkup\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"]
+            }
+          }
+        },
+        {
+          "name": "Repeat Booking (idempotent replay)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 same appointment', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('appointmentId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{patientUser}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"doctorId\":\"{{doctorId}}\",\"start\":\"{{slotStart}}\",\"reason\":\"Annual checkup\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"]
+            }
+          }
+        },
+        {
+          "name": "List My Appointments (patient)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{patientUser}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"]
+            }
+          }
+        },
+        {
+          "name": "List My Appointments (doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{doctorUser}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"]
+            }
+          }
+        },
+        {
+          "name": "Get Appointment (patient)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{patientUser}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/{{appointmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "{{appointmentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Appointment (patient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 cancelled', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().status).to.eql('CANCELLED'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Debug-User",
+                "value": "{{patientUser}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"Plans changed\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/{{appointmentId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "{{appointmentId}}", "cancel"]
             }
           }
         }

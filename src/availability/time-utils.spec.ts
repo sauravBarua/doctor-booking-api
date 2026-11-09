@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, daysBetween, formatHm, isoWeekday, parisToday, parseHm } from './time-utils';
+import {
+  addDays,
+  daysBetween,
+  formatHm,
+  isoWeekday,
+  parisStartOfDay,
+  parisToday,
+  parseHm,
+} from './time-utils';
 
 describe('time utils', () => {
   it('converts between HH:mm and minutes', () => {
@@ -28,5 +36,15 @@ describe('time utils', () => {
   it('numbers weekdays Monday = 1 to Sunday = 7', () => {
     expect(isoWeekday('2026-11-09')).toBe(1);
     expect(isoWeekday('2026-03-29')).toBe(7);
+  });
+
+  it('finds the instant a Paris day starts, in winter and summer', () => {
+    expect(parisStartOfDay('2026-11-09').toISOString()).toBe('2026-11-08T23:00:00.000Z');
+    expect(parisStartOfDay('2026-07-14').toISOString()).toBe('2026-07-13T22:00:00.000Z');
+  });
+
+  it('handles the days that change the clock', () => {
+    expect(parisStartOfDay('2026-03-29').toISOString()).toBe('2026-03-28T23:00:00.000Z');
+    expect(parisStartOfDay('2026-10-25').toISOString()).toBe('2026-10-24T22:00:00.000Z');
   });
 });

@@ -4,4 +4,4 @@ coverage
 .env
 src/generated
 *.log
-.DS_Store
+.DS_Store.race-tmp/

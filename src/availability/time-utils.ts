@@ -40,3 +40,8 @@ export function daysBetween(from: string, to: string): number {
 export function isoWeekday(date: string): number {
   return DateTime.fromISO(date, { zone: 'utc' }).weekday;
 }
+
+/** The UTC instant at which a Paris calendar date starts (00:00 Paris). */
+export function parisStartOfDay(date: string): Date {
+  return DateTime.fromISO(date, { zone: APP_TIMEZONE }).startOf('day').toJSDate();
+}

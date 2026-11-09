@@ -11,6 +11,7 @@ import {
   APP_TIMEZONE,
 } from '../common/constants';
 import { isExclusionViolation } from '../common/utils/prisma-errors';
+import { AppointmentStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateTimeOffDto, ReplaceAvailabilityDto, SlotsQueryDto } from './availability.dto';
 import { generateSlots, type Interval } from './slot-generator';
@@ -118,9 +119,19 @@ export class AvailabilityService {
     if (count === 0) throw new NotFoundException('Time off not found');
   }
 
-  /** Booked intervals that block slots. Phase 3 replaces this with a query on appointments. */
-  private loadBusy(_doctorId: string, _from: string, _to: string): Promise<Interval[]> {
-    return Promise.resolve([]);
+  /** Confirmed appointments block slots. The window is padded by a day to stay clear of Paris/UTC offsets. */
+  private async loadBusy(doctorId: string, from: string, to: string): Promise<Interval[]> {
+    const day = 24 * 60 * 60_000;
+    const rows = await this.prisma.appointment.findMany({
+      where: {
+        doctorId,
+        status: AppointmentStatus.CONFIRMED,
+        startAt: { lt: new Date(Date.parse(`${to}T00:00:00.000Z`) + 2 * day) },
+        endAt: { gt: new Date(Date.parse(`${from}T00:00:00.000Z`) - day) },
+      },
+      select: { startAt: true, endAt: true },
+    });
+    return rows.map((row) => ({ start: row.startAt, end: row.endAt }));
   }
 
   async getSlots(doctorId: string, query: SlotsQueryDto, now: Date = new Date()) {
