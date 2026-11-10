@@ -36,24 +36,78 @@
       "key": "doctorId",
       "value": ""
     },
-    { "key": "timeOffId", "value": "" },
-    { "key": "timeOffDate", "value": "" },
-    { "key": "slotsFrom", "value": "" },
-    { "key": "slotsTo", "value": "" },
-    { "key": "slotStart", "value": "" },
-    { "key": "appointmentId", "value": "" },
-    { "key": "idempotencyKey", "value": "" },
-    { "key": "adminToken", "value": "" },
-    { "key": "doctorToken", "value": "" },
-    { "key": "patientToken", "value": "" },
-    { "key": "adminRefresh", "value": "" },
-    { "key": "patientRefresh", "value": "" },
-    { "key": "registerEmail", "value": "sauravnight+pm1@gmail.com" },
-    { "key": "otpCode", "value": "" },
-    { "key": "notificationCursor", "value": "" },
-    { "key": "notificationId", "value": "" },
-    { "key": "targetUserId", "value": "" },
-    { "key": "adminAppointmentId", "value": "" }
+    {
+      "key": "timeOffId",
+      "value": ""
+    },
+    {
+      "key": "timeOffDate",
+      "value": ""
+    },
+    {
+      "key": "slotsFrom",
+      "value": ""
+    },
+    {
+      "key": "slotsTo",
+      "value": ""
+    },
+    {
+      "key": "slotStart",
+      "value": ""
+    },
+    {
+      "key": "appointmentId",
+      "value": ""
+    },
+    {
+      "key": "idempotencyKey",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "doctorToken",
+      "value": ""
+    },
+    {
+      "key": "patientToken",
+      "value": ""
+    },
+    {
+      "key": "adminRefresh",
+      "value": ""
+    },
+    {
+      "key": "patientRefresh",
+      "value": ""
+    },
+    {
+      "key": "registerEmail",
+      "value": "sauravnight+pm1@gmail.com"
+    },
+    {
+      "key": "otpCode",
+      "value": ""
+    },
+    {
+      "key": "notificationCursor",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "targetUserId",
+      "value": ""
+    },
+    {
+      "key": "adminAppointmentId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -427,6 +481,70 @@
               "path": ["me"]
             }
           }
+        },
+        {
+          "name": "Update My Profile (patient)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"name\":\"Pat Ient\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"name\":\"Site Admin\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            }
+          }
         }
       ]
     },
@@ -456,13 +574,19 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\"name\":\"Orthopedics {{$timestamp}}\",\"description\":\"Bones and joints\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"name\":\"Cardiology\",\"description\":\"Heart care\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/specialties",
@@ -506,13 +630,19 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\"description\":\"Updated description\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"description\":\"Updated text\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/specialties/{{specialtyId}}",
@@ -549,13 +679,19 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\"name\":\"Central Clinic\",\"addressLine\":\"12 Rue de Rivoli\",\"city\":\"Paris\",\"phone\":\"+33 1 23 45 67 89\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"name\":\"Central Clinic\",\"addressLine\":\"1 rue de Rivoli\",\"city\":\"Paris\",\"phone\":\"0140000000\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/clinics",
@@ -599,13 +735,19 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"+33 1 98 76 54 32\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"phone\":\"0140000001\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/clinics/{{clinicId}}",
@@ -747,13 +889,19 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\"bio\":\"Updated by the doctor\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"bio\":\"Cardiologist\",\"experienceYears\":12}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/doctors/me",
@@ -809,11 +957,20 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"rules\":[{\"dayOfWeek\":1,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":2,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":3,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":4,\"start\":\"09:00\",\"end\":\"17:00\"},{\"dayOfWeek\":5,\"start\":\"09:00\",\"end\":\"17:00\"}]}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/doctors/me/availability",
@@ -826,7 +983,12 @@
           "name": "Get My Availability (doctor)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/availability",
               "host": ["{{baseUrl}}"],
@@ -860,11 +1022,20 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"date\":\"{{timeOffDate}}\",\"start\":\"10:00\",\"end\":\"12:00\",\"reason\":\"Conference\"}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/doctors/me/time-off",
@@ -877,7 +1048,12 @@
           "name": "List My Time Off (doctor)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/time-off",
               "host": ["{{baseUrl}}"],
@@ -889,7 +1065,12 @@
           "name": "Delete Time Off (doctor)",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{doctorToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctorToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/doctors/me/time-off/{{timeOffId}}",
               "host": ["{{baseUrl}}"],
@@ -931,8 +1112,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["doctors", "{{doctorId}}", "slots"],
               "query": [
-                { "key": "from", "value": "{{slotsFrom}}" },
-                { "key": "to", "value": "{{slotsTo}}" }
+                {
+                  "key": "from",
+                  "value": "{{slotsFrom}}"
+                },
+                {
+                  "key": "to",
+                  "value": "{{slotsTo}}"
+                }
               ]
             }
           }
@@ -1343,14 +1530,25 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/admin/users?q=jane.doe&limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "users"],
               "query": [
-                { "key": "q", "value": "jane.doe" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "q",
+                  "value": "jane.doe"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1359,7 +1557,12 @@
           "name": "Get user (admin)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/admin/users/{{targetUserId}}",
               "host": ["{{baseUrl}}"],
@@ -1372,13 +1575,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"reason\": \"Postman check\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users/{{targetUserId}}/deactivate",
@@ -1392,13 +1605,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"reason\": \"Postman check finished\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users/{{targetUserId}}/reactivate",
@@ -1423,14 +1646,25 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/admin/appointments?status=CONFIRMED&limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "appointments"],
               "query": [
-                { "key": "status", "value": "CONFIRMED" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1440,13 +1674,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"reason\": \"Cancelled by clinic administration\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/admin/appointments/{{adminAppointmentId}}/cancel",
@@ -1459,12 +1703,22 @@
           "name": "List audit logs (admin)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/admin/audit-logs?limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "audit-logs"],
-              "query": [{ "key": "limit", "value": "20" }]
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
             }
           }
         },
@@ -1472,11 +1726,65 @@
           "name": "Platform stats (admin)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/admin/stats",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Set avatar (patient)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/me/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["me", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Remove avatar (patient)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{patientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["me", "avatar"]
             }
           }
         }

@@ -9,16 +9,23 @@ const fields = {
 
 const phoneSchema = z.string().trim().min(5).max(30);
 
-const createClinicSchema = z.object({ ...fields, phone: phoneSchema.optional() });
+export const createClinicSchema = z.object({ ...fields, phone: phoneSchema.optional() });
 
-const updateClinicSchema = z
-  .object({
-    name: fields.name.optional(),
-    addressLine: fields.addressLine.optional(),
-    city: fields.city.optional(),
-    phone: phoneSchema.nullable().optional(),
-  })
-  .refine((value) => Object.keys(value).length > 0, { message: 'At least one field is required' });
+/** Without the "at least one field" rule: an update may consist of an image only. */
+export const updateClinicBase = z.object({
+  name: fields.name.optional(),
+  addressLine: fields.addressLine.optional(),
+  city: fields.city.optional(),
+  phone: phoneSchema.nullable().optional(),
+  removeImage: z.boolean().optional(),
+});
+
+export const updateClinicSchema = updateClinicBase.refine(
+  (value) => Object.keys(value).length > 0,
+  {
+    message: 'At least one field is required',
+  },
+);
 
 export class CreateClinicDto extends createZodDto(createClinicSchema) {}
-export class UpdateClinicDto extends createZodDto(updateClinicSchema) {}
+export class UpdateClinicDto extends createZodDto(updateClinicBase) {}

@@ -11,6 +11,8 @@ import {
 } from '../common/utils/prisma-errors';
 import { Role } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
+import type { ValidatedImage } from '../uploads/image-file.pipe';
+import { ImageLifecycle } from '../uploads/image-lifecycle';
 import { doctorSelect, toPrivateDoctor, toPublicDoctor } from './doctor-view';
 import type {
   AdminUpdateDoctorDto,
@@ -21,7 +23,10 @@ import type {
 
 @Injectable()
 export class DoctorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly images: ImageLifecycle,
+  ) {}
 
   async search(query: SearchDoctorsQueryDto) {
     const rows = await this.prisma.doctorProfile.findMany({
@@ -71,18 +76,39 @@ export class DoctorsService {
     return toPrivateDoctor(row);
   }
 
-  async updateMine(userId: string, dto: UpdateMyProfileDto) {
-    try {
-      const row = await this.prisma.doctorProfile.update({
-        where: { userId },
-        data: dto,
-        select: doctorSelect,
+  async updateMine(userId: string, dto: UpdateMyProfileDto, image?: ValidatedImage) {
+    const staged = await this.images.stage(image, 'avatar');
+    const { removeImage, ...profile } = dto;
+    const changesImage = staged !== undefined || removeImage === true;
+
+    const outcome = await this.prisma
+      .$transaction(async (tx) => {
+        await tx.$executeRaw`SELECT 1 FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
+        const before = await tx.user.findUnique({
+          where: { id: userId },
+          select: { avatarPublicId: true },
+        });
+        if (changesImage) {
+          await tx.user.update({
+            where: { id: userId },
+            data: { avatarUrl: staged?.url ?? null, avatarPublicId: staged?.publicId ?? null },
+          });
+        }
+        const row = await tx.doctorProfile.update({
+          where: { userId },
+          data: profile,
+          select: doctorSelect,
+        });
+        return { row, previous: before?.avatarPublicId ?? null };
+      })
+      .catch(async (error: unknown) => {
+        await this.images.abandon(staged);
+        if (isRecordNotFound(error)) throw new NotFoundException('Doctor profile not found');
+        throw error;
       });
-      return toPrivateDoctor(row);
-    } catch (error) {
-      if (isRecordNotFound(error)) throw new NotFoundException('Doctor profile not found');
-      throw error;
-    }
+
+    if (changesImage) await this.images.release(outcome.previous);
+    return toPrivateDoctor(outcome.row);
   }
 
   async adminCreate(dto: CreateDoctorDto) {

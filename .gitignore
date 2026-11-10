@@ -5,3 +5,4 @@ coverage
 src/generated
 *.log
 .DS_Store.race-tmp/
+*.tsbuildinfo

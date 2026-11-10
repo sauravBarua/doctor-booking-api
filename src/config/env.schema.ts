@@ -31,6 +31,11 @@ export const envSchema = z
     GOOGLE_CLIENT_SECRET: optionalText,
     GOOGLE_REDIRECT_URI: optionalText,
 
+    STORAGE_DRIVER: z.enum(['cloudinary', 'memory']).default('memory'),
+    CLOUDINARY_CLOUD_NAME: optionalText,
+    CLOUDINARY_API_KEY: optionalText,
+    CLOUDINARY_API_SECRET: optionalText,
+
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
@@ -95,6 +100,30 @@ export const envSchema = z
           message: 'BCRYPT_ROUNDS must be at least 10 in production',
         });
       }
+    }
+  })
+  .superRefine((env, ctx) => {
+    if (env.STORAGE_DRIVER === 'cloudinary') {
+      for (const key of [
+        'CLOUDINARY_CLOUD_NAME',
+        'CLOUDINARY_API_KEY',
+        'CLOUDINARY_API_SECRET',
+      ] as const) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [key],
+            message: `${key} is required when STORAGE_DRIVER=cloudinary`,
+          });
+        }
+      }
+    }
+    if (env.NODE_ENV === 'production' && env.STORAGE_DRIVER !== 'cloudinary') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['STORAGE_DRIVER'],
+        message: 'STORAGE_DRIVER must be cloudinary in production',
+      });
     }
   });
 

@@ -5,9 +5,9 @@ export const doctorSelect = {
   bio: true,
   experienceYears: true,
   slotDurationMin: true,
-  user: { select: { name: true, email: true, isActive: true } },
-  specialty: { select: { id: true, name: true, slug: true } },
-  clinic: { select: { id: true, name: true, addressLine: true, city: true } },
+  user: { select: { name: true, email: true, isActive: true, avatarUrl: true } },
+  specialty: { select: { id: true, name: true, slug: true, iconUrl: true } },
+  clinic: { select: { id: true, name: true, addressLine: true, city: true, imageUrl: true } },
 } satisfies Prisma.DoctorProfileSelect;
 
 export type DoctorRow = Prisma.DoctorProfileGetPayload<{ select: typeof doctorSelect }>;
@@ -17,6 +17,7 @@ export function toPublicDoctor(row: DoctorRow) {
   return {
     id: row.id,
     name: row.user.name,
+    avatarUrl: row.user.avatarUrl,
     bio: row.bio,
     experienceYears: row.experienceYears,
     slotDurationMin: row.slotDurationMin,

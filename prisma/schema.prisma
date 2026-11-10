@@ -31,6 +31,8 @@ model User {
   passwordHash    String?        @map("password_hash")
   emailVerifiedAt DateTime?      @map("email_verified_at") @db.Timestamptz(3)
   googleId        String?        @unique @map("google_id")
+  avatarUrl       String?        @map("avatar_url")
+  avatarPublicId  String?        @map("avatar_public_id")
   createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -67,6 +69,8 @@ model Specialty {
   name        String   @unique
   slug        String   @unique
   description String?
+  iconUrl      String?  @map("icon_url")
+  iconPublicId String?  @map("icon_public_id")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -81,6 +85,8 @@ model Clinic {
   addressLine String   @map("address_line")
   city        String
   phone       String?
+  imageUrl      String?  @map("image_url")
+  imagePublicId String?  @map("image_public_id")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 

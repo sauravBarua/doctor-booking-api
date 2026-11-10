@@ -38,11 +38,14 @@ const adminUpdateDoctorSchema = z
   })
   .refine(nonEmpty, nonEmptyMessage);
 
-const updateMyProfileSchema = z
-  .object({ bio: bio.optional(), experienceYears: experienceYears.optional() })
-  .refine(nonEmpty, nonEmptyMessage);
+export const updateMyProfileBase = z.object({
+  bio: bio.optional(),
+  experienceYears: experienceYears.optional(),
+  removeImage: z.boolean().optional(),
+});
+export const updateMyProfileSchema = updateMyProfileBase.refine(nonEmpty, nonEmptyMessage);
 
 export class SearchDoctorsQueryDto extends createZodDto(searchDoctorsSchema) {}
 export class CreateDoctorDto extends createZodDto(createDoctorSchema) {}
 export class AdminUpdateDoctorDto extends createZodDto(adminUpdateDoctorSchema) {}
-export class UpdateMyProfileDto extends createZodDto(updateMyProfileSchema) {}
+export class UpdateMyProfileDto extends createZodDto(updateMyProfileBase) {}

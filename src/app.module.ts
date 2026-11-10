@@ -19,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
 import { LoggingModule } from './logging/logging.module';
 import { RateLimitGuard } from './rate-limit/rate-limit.guard';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { RateLimitModule } from './rate-limit/rate-limit.module';
     HealthModule,
     AdminModule,
     RateLimitModule,
+    UploadsModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
