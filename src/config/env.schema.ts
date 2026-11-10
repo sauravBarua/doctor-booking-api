@@ -30,6 +30,26 @@ export const envSchema = z
     GOOGLE_CLIENT_ID: optionalText,
     GOOGLE_CLIENT_SECRET: optionalText,
     GOOGLE_REDIRECT_URI: optionalText,
+
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+      .default('info'),
+    // The BFF is the only client, so leave this empty in production (no browser calls the API).
+    CORS_ORIGINS: z
+      .string()
+      .default('')
+      .transform((v) =>
+        v
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+      .refine((list) => !list.includes('*'), 'Wildcard origins are not allowed'),
+    // Number of proxy hops to trust for req.ip (BFF / load balancer).
+    TRUST_PROXY: z.coerce.number().int().min(0).max(10).default(0),
+    RATE_LIMIT_ENABLED: z.stringbool().default(true),
+    RATE_LIMIT_DEFAULT_PER_MINUTE: z.coerce.number().int().min(1).default(300),
+    SWAGGER_ENABLED: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {
     if (env.MAIL_DRIVER === 'smtp') {

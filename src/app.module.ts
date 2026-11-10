@@ -16,9 +16,13 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AdminModule } from './admin/admin.module';
+import { LoggingModule } from './logging/logging.module';
+import { RateLimitGuard } from './rate-limit/rate-limit.guard';
+import { RateLimitModule } from './rate-limit/rate-limit.module';
 
 @Module({
   imports: [
+    LoggingModule,
     AppConfigModule,
     PrismaModule,
     RedisModule,
@@ -32,11 +36,13 @@ import { AdminModule } from './admin/admin.module';
     NotificationsModule,
     HealthModule,
     AdminModule,
+    RateLimitModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
-    // Order matters: identity first, then roles.
+    // Order matters: identity first, then rate limit (needs the user), then roles.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })

@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, Query, Req } from '@nestjs/commo
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import type { AuthUser } from '../common/types/auth-user';
+import { RATE_LIMITS, RateLimit } from '../rate-limit/rate-limit.decorator';
 import {
   GoogleCallbackDto,
   LoginDto,
@@ -25,6 +26,7 @@ function metaOf(request: RequestLike): SessionMeta {
   return { userAgent: typeof userAgent === 'string' ? userAgent : undefined, ip: request.ip };
 }
 
+@RateLimit(RATE_LIMITS.auth)
 @Controller('auth')
 export class AuthController {
   constructor(

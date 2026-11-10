@@ -36,7 +36,8 @@ function listRoutes(app: INestApplication): { method: string; path: string }[] {
   if (!Array.isArray(stack)) throw new Error('Cannot read the Express route table');
 
   return stack.flatMap(({ route }) =>
-    route
+    // Catch-all middleware registrations (e.g. the request logger's `{*path}`) are not endpoints.
+    route && typeof route.path === 'string' && route.path.startsWith('/')
       ? Object.keys(route.methods)
           .filter((method) => route.methods[method])
           .map((method) => ({ method, path: route.path }))
@@ -70,8 +71,12 @@ describe('Route protection (e2e)', () => {
     const open: string[] = [];
     for (const { method, path } of routes) {
       if (PUBLIC_ROUTES.has(`${method.toUpperCase()} ${path}`)) continue;
-      const res = await send(method, path);
-      if (res.status !== 401) open.push(`${method.toUpperCase()} ${path} -> ${res.status}`);
+      try {
+        const res = await send(method, path);
+        if (res.status !== 401) open.push(`${method.toUpperCase()} ${path} -> ${res.status}`);
+      } catch (error) {
+        open.push(`${method.toUpperCase()} ${path} -> threw ${String(error)}`);
+      }
     }
     expect(open).toEqual([]);
   });

@@ -59,8 +59,8 @@ export class AuditService {
         ...(query.from || query.to
           ? {
               createdAt: {
-                ...(query.from ? { gte: query.from } : {}),
-                ...(query.to ? { lte: query.to } : {}),
+                ...(query.from ? { gte: new Date(query.from) } : {}),
+                ...(query.to ? { lte: new Date(query.to) } : {}),
               },
             }
           : {}),

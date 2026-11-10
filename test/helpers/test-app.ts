@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { GoogleOAuthClient, type GoogleProfile } from '../../src/auth/google-oauth.client';
 import { TokensService } from '../../src/auth/tokens.service';
+import { configureApp } from '../../src/bootstrap/configure-app';
 import { EmailJobHandler } from '../../src/jobs/email-job.handler';
 import { MailTransport, MemoryMailTransport } from '../../src/mail/mail.transport';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -50,6 +51,7 @@ export async function createTestApp(): Promise<TestContext> {
     .compile();
 
   const app = moduleRef.createNestApplication();
+  configureApp(app);
   const prisma = app.get(PrismaService);
   const tokens = app.get(TokensService);
 

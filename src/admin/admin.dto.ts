@@ -27,7 +27,7 @@ export class ListAdminAppointmentsDto extends createZodDto(
     status: z.enum(AppointmentStatus).optional(),
     doctorId: z.guid().optional(),
     patientId: z.guid().optional(),
-    from: z.coerce.date().optional(),
-    to: z.coerce.date().optional(),
+    from: z.iso.datetime({ offset: true }).optional(),
+    to: z.iso.datetime({ offset: true }).optional(),
   }),
 ) {}

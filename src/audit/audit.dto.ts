@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 const text = z.string().trim().min(1).max(100);
+const dateTime = z.iso.datetime({ offset: true });
 
 export class ListAuditLogsDto extends createZodDto(
   z
@@ -12,10 +13,10 @@ export class ListAuditLogsDto extends createZodDto(
       action: text.optional(),
       entityType: text.optional(),
       entityId: text.optional(),
-      from: z.coerce.date().optional(),
-      to: z.coerce.date().optional(),
+      from: dateTime.optional(),
+      to: dateTime.optional(),
     })
-    .refine((v) => !v.from || !v.to || v.from <= v.to, {
+    .refine((v) => !v.from || !v.to || new Date(v.from) <= new Date(v.to), {
       message: 'from must not be after to',
       path: ['to'],
     }),

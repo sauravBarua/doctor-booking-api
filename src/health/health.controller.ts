@@ -1,9 +1,11 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { Public } from '../common/decorators/public.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import { SkipRateLimit } from '../rate-limit/rate-limit.decorator';
 import { RedisService } from '../redis/redis.service';
 
 @Public()
+@SkipRateLimit()
 @Controller('health')
 export class HealthController {
   constructor(
