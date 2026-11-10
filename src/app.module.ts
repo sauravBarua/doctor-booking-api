@@ -15,6 +15,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AppointmentsModule,
     NotificationsModule,
     HealthModule,
+    AdminModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

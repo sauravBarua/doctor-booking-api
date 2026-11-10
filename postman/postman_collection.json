@@ -51,7 +51,9 @@
     { "key": "registerEmail", "value": "sauravnight+pm1@gmail.com" },
     { "key": "otpCode", "value": "" },
     { "key": "notificationCursor", "value": "" },
-    { "key": "notificationId", "value": "" }
+    { "key": "notificationId", "value": "" },
+    { "key": "targetUserId", "value": "" },
+    { "key": "adminAppointmentId", "value": "" }
   ],
   "item": [
     {
@@ -1317,6 +1319,164 @@
               "raw": "{{baseUrl}}/notifications/read-all",
               "host": ["{{baseUrl}}"],
               "path": ["notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List users (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const items = pm.response.json().items;",
+                  "if (items.length) pm.collectionVariables.set('targetUserId', items[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?q=jane.doe&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                { "key": "q", "value": "jane.doe" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get user (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{targetUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{targetUserId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate user (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman check\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{targetUserId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{targetUserId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Reactivate user (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman check finished\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{targetUserId}}/reactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "{{targetUserId}}", "reactivate"]
+            }
+          }
+        },
+        {
+          "name": "List appointments (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const items = pm.response.json().items;",
+                  "if (items.length) pm.collectionVariables.set('adminAppointmentId', items[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/appointments?status=CONFIRMED&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "appointments"],
+              "query": [
+                { "key": "status", "value": "CONFIRMED" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel appointment (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cancelled by clinic administration\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/appointments/{{adminAppointmentId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "appointments", "{{adminAppointmentId}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "List audit logs (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/audit-logs?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "audit-logs"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Platform stats (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "stats"]
             }
           }
         }

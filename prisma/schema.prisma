@@ -38,6 +38,7 @@ model User {
   appointments  Appointment[]
   refreshTokens RefreshToken[]
   notifications Notification[]
+  auditLogs     AuditLog[]
 
   @@map("users")
 }
@@ -198,4 +199,23 @@ model Notification {
   @@index([userId, seq])
   @@index([userId, readAt])
   @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  actorRole  Role?    @map("actor_role")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
