@@ -37,6 +37,7 @@ model User {
   doctorProfile DoctorProfile?
   appointments  Appointment[]
   refreshTokens RefreshToken[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -163,4 +164,38 @@ model Appointment {
   @@index([doctorId, startAt])
   @@index([patientId, startAt])
   @@map("appointments")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  type        String
+  aggregateId String    @map("aggregate_id") @db.Uuid
+  payload     Json
+  dedupeKey   String?   @unique @map("dedupe_key")
+  attempts    Int       @default(0)
+  lastError   String?   @map("last_error")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(3)
+
+  @@index([publishedAt, createdAt])
+  @@map("outbox_events")
+}
+
+model Notification {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  seq       BigInt    @unique @default(autoincrement())
+  userId    String    @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String
+  data      Json?
+  dedupeKey String    @unique @map("dedupe_key")
+  readAt    DateTime? @map("read_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, seq])
+  @@index([userId, readAt])
+  @@map("notifications")
 }

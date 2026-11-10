@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { AppConfigModule } from '../config/app-config.module';
+import { JobsModule } from '../jobs/jobs.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { RedisModule } from '../redis/redis.module';
+import { WorkerRunner } from './worker.runner';
+
+@Module({
+  imports: [AppConfigModule, PrismaModule, RedisModule, JobsModule],
+  providers: [WorkerRunner],
+})
+export class WorkerModule {}

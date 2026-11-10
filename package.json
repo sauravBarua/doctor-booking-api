@@ -28,7 +28,9 @@
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up -d --wait",
     "docker:logs": "docker compose logs -f",
-    "docker:ps": "docker compose ps"
+    "docker:ps": "docker compose ps",
+    "start:worker": "node dist/worker/main.js",
+    "start:worker:dev": "nest start --watch --entryFile worker/main"
   },
   "lint-staged": {
     "*.{ts,mts,mjs,js}": [
@@ -60,6 +62,7 @@
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcrypt": "^6.0.0",
+    "bullmq": "^6.7.2",
     "ioredis": "^6.0.0",
     "luxon": "^3.7.2",
     "nestjs-zod": "^5.5.0",

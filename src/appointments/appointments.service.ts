@@ -11,6 +11,7 @@ import type { AuthUser } from '../common/types/auth-user';
 import { isExclusionViolation, isUniqueViolation } from '../common/utils/prisma-errors';
 import type { Prisma } from '../generated/prisma/client';
 import { AppointmentStatus, Role } from '../generated/prisma/enums';
+import { OutboxService } from '../jobs/outbox.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { canTransition, patientMayCancel } from './appointment-policy';
 import { appointmentSelect, toAppointmentView, type AppointmentRow } from './appointment-view';
@@ -35,6 +36,7 @@ export class AppointmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly availability: AvailabilityService,
+    private readonly outbox: OutboxService,
   ) {}
 
   private findByKey(db: Db, patientId: string, key: string) {
@@ -125,6 +127,11 @@ export class AppointmentsService {
             },
             select: appointmentSelect,
           });
+          await this.outbox.record(tx, {
+            type: 'appointment.booked',
+            aggregateId: row.id,
+            payload: { appointmentId: row.id, actorRole: patient.role },
+          });
           return { appointment: toAppointmentView(row), replayed: false };
         },
         { maxWait: 10_000, timeout: 10_000 },
@@ -212,20 +219,30 @@ export class AppointmentsService {
       throw new ConflictException('The appointment has not started yet');
     }
 
-    // Conditional update: two concurrent transitions cannot both succeed.
-    const { count } = await this.prisma.appointment.updateMany({
-      where: { id, status: AppointmentStatus.CONFIRMED },
-      data:
-        target === AppointmentStatus.CANCELLED
-          ? {
-              status: target,
-              cancelledAt: now,
-              cancelledByRole: user.role,
-              cancellationReason: reason,
-            }
-          : { status: target },
+    // The status change and its outbox event commit together, or not at all.
+    await this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.appointment.updateMany({
+        where: { id, status: AppointmentStatus.CONFIRMED },
+        data:
+          target === AppointmentStatus.CANCELLED
+            ? {
+                status: target,
+                cancelledAt: now,
+                cancelledByRole: user.role,
+                cancellationReason: reason,
+              }
+            : { status: target },
+      });
+      if (count === 0) throw new ConflictException('The appointment has just changed state');
+
+      if (target === AppointmentStatus.CANCELLED) {
+        await this.outbox.record(tx, {
+          type: 'appointment.cancelled',
+          aggregateId: id,
+          payload: { appointmentId: id, actorRole: user.role },
+        });
+      }
     });
-    if (count === 0) throw new ConflictException('The appointment has just changed state');
 
     return toAppointmentView(await this.loadFor(user, id));
   }

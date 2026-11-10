@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { LOGIN_FAILURE_WINDOW_SECONDS, LOGIN_MAX_FAILURES } from '../common/constants';
@@ -11,8 +10,8 @@ import { isUniqueViolation } from '../common/utils/prisma-errors';
 import type { User } from '../generated/prisma/client';
 import { Role } from '../generated/prisma/enums';
 import type { OtpPurpose } from '../mail/mail.templates';
-import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailQueue } from '../queue/email-queue';
 import { AttemptLimiter } from './attempt-limiter.service';
 import type {
   LoginDto,
@@ -38,14 +37,12 @@ export interface SessionResponse extends TokenPair {
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly passwords: PasswordService,
     private readonly otp: OtpService,
     private readonly tokens: TokensService,
-    private readonly mail: MailService,
+    private readonly emailQueue: EmailQueue,
     private readonly limiter: AttemptLimiter,
   ) {}
 
@@ -76,14 +73,8 @@ export class AuthService {
     const code = await this.otp.issue(purpose, email);
     if (code === null) return; // resend cooldown
 
-    // Not awaited on purpose: the response time must not reveal whether the address exists.
-    // Phase 5 moves delivery to the outbox.
-    void this.mail.sendOtp(email, code, purpose).catch((error: unknown) => {
-      this.logger.error(
-        'Sending a one-time code failed',
-        error instanceof Error ? error.stack : '',
-      );
-    });
+    // One Redis write: no SMTP latency in the request, so no timing leak either.
+    await this.emailQueue.add({ data: { template: 'otp', to: email, code, purpose } });
   }
 
   async register(dto: RegisterDto): Promise<void> {

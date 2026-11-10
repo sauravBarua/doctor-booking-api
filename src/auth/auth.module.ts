@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import type { Env } from '../config/env.schema';
-import { MailModule } from '../mail/mail.module';
+import { QueueModule } from '../queue/queue.module';
 import { AttemptLimiter } from './attempt-limiter.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -14,7 +14,7 @@ import { TokensService } from './tokens.service';
 
 @Module({
   imports: [
-    MailModule,
+    QueueModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => ({

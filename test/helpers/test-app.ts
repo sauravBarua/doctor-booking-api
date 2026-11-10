@@ -3,15 +3,19 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { GoogleOAuthClient, type GoogleProfile } from '../../src/auth/google-oauth.client';
 import { TokensService } from '../../src/auth/tokens.service';
+import { EmailJobHandler } from '../../src/jobs/email-job.handler';
 import { MailTransport, MemoryMailTransport } from '../../src/mail/mail.transport';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { EmailQueue } from '../../src/queue/email-queue';
 import { RedisService } from '../../src/redis/redis.service';
+import { InlineEmailQueue } from './inline-email-queue';
 
 export interface TestContext {
   app: INestApplication;
   prisma: PrismaService;
   redis: RedisService;
   mail: MemoryMailTransport;
+  queue: InlineEmailQueue;
 }
 
 interface FakeGoogle {
@@ -37,9 +41,12 @@ interface TestRequest {
 }
 
 export async function createTestApp(): Promise<TestContext> {
+  const queue = new InlineEmailQueue();
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(GoogleOAuthClient)
     .useValue(fakeGoogle)
+    .overrideProvider(EmailQueue)
+    .useValue(queue)
     .compile();
 
   const app = moduleRef.createNestApplication();
@@ -62,12 +69,14 @@ export async function createTestApp(): Promise<TestContext> {
   });
 
   await app.init();
+  queue.handler = app.get(EmailJobHandler, { strict: false });
 
   return {
     app,
     prisma,
     redis: app.get(RedisService),
     mail: app.get<MemoryMailTransport>(MailTransport),
+    queue,
   };
 }
 
