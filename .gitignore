@@ -4,5 +4,7 @@ coverage
 .env
 src/generated
 *.log
-.DS_Store.race-tmp/
+.DS_Store
+.race-tmp/
 *.tsbuildinfo
+.env.prod.local

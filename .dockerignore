@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.github
+.husky
+.env
+.env.*
+*.tsbuildinfo
+src/generated
+postman
+*.md
+Dockerfile
+docker-compose*.yml
